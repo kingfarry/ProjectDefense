@@ -1,0 +1,38 @@
+
+{
+    "accountSettings": {
+      "title": "Account Settings",
+      "profile": "Profile",
+      "security": "Security",
+      "preferences": "Preferences",
+      "username": "Username",
+      "email": "Email"
+      
+    }
+  }
+  
+  
+  {
+    "accountSettings": {
+      "title": "Configuración de la cuenta",
+      "profile": "Perfil",
+      "security": "Seguridad",
+      "preferences": "Preferencias",
+      "username": "Nombre de usuario",
+      "email": "Correo electrónico"
+      
+    }
+  }
+  
+
+  {
+    "accountSettings": {
+      "title": "Paramètres du compte",
+      "profile": "Profil",
+      "security": "Sécurité",
+      "preferences": "Préférences",
+      "username": "Nom d'utilisateur",
+      "email": "Email",
+      // ... other translations
+    }
+  }
