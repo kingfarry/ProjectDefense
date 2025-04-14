@@ -1,6 +1,23 @@
 import { useState, useRef, useEffect, createContext, useContext } from "react";
-import { Volume2, Mic, Play, RotateCcw, User, Home, Gamepad2, Settings, Trophy } from "lucide-react";
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from "react-router-dom";
+import {
+  Volume2,
+  Mic,
+  Play,
+  RotateCcw,
+  User,
+  Home,
+  Gamepad2,
+  Settings,
+  Trophy,
+} from "lucide-react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useLocation,
+  Navigate,
+} from "react-router";
 import DetailedAnalysis from "./components/DetailedAnalysis";
 import CompareWords from "./components/CompareWords";
 import Profile from "./components/Profile";
@@ -19,7 +36,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>({
   authToken: null,
-  setAuthToken: () => {}
+  setAuthToken: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -49,7 +66,7 @@ interface UserData {
 
 interface PracticeStats {
   wordsPracticed: number;
-  sessions: {score: number, date: string}[];
+  sessions: { score: number; date: string }[];
   lastPracticeDate: string | null;
   minimalPairsCompleted: number;
 }
@@ -62,7 +79,7 @@ const POINT_VALUES = {
   GAME_SCORE_MULTIPLIER: 0.5,
   DAILY_LOGIN: 20,
   STREAK_BONUS: 5,
-  MINIMAL_PAIR_CORRECT: 5
+  MINIMAL_PAIR_CORRECT: 5,
 };
 
 function AppContent() {
@@ -73,27 +90,38 @@ function AppContent() {
   const [score, setScore] = useState<number | null>(null);
   const [userRecording, setUserRecording] = useState<string>("");
   const [phonetic, setPhonetic] = useState<string>("");
-  const [wordDetails, setWordDetails] = useState<DictionaryResponse | null>(null);
-  const [activeTab, setActiveTab] = useState<'practice' | 'game' | 'profile' | 'account' | 'leaderboard' | 'minimal-pairs'>('practice');
+  const [wordDetails, setWordDetails] = useState<DictionaryResponse | null>(
+    null
+  );
+  const [activeTab, setActiveTab] = useState<
+    | "practice"
+    | "game"
+    | "profile"
+    | "account"
+    | "leaderboard"
+    | "minimal-pairs"
+  >("practice");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   const [practiceStats, setPracticeStats] = useState<PracticeStats>({
     wordsPracticed: 0,
     sessions: [],
     lastPracticeDate: null,
-    minimalPairsCompleted: 0
+    minimalPairsCompleted: 0,
   });
-  const [gameHistory, setGameHistory] = useState<{score: number, date: string}[]>([]);
+  const [gameHistory, setGameHistory] = useState<
+    { score: number; date: string }[]
+  >([]);
   const [totalScore, setTotalScore] = useState(0);
 
   const recognition = useRef<any>(null);
 
   const getSentencePhonetic = async (text: string): Promise<string> => {
     if (!text) return "";
-    
+
     try {
-      const words = text.split(/\s+/).filter(word => word.length > 0);
-      const phoneticPromises = words.map(async word => {
+      const words = text.split(/\s+/).filter((word) => word.length > 0);
+      const phoneticPromises = words.map(async (word) => {
         try {
           const response = await fetch(
             `https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`
@@ -107,7 +135,7 @@ function AppContent() {
           return word;
         }
       });
-      
+
       const phonetics = await Promise.all(phoneticPromises);
       return phonetics.join(" ");
     } catch (error) {
@@ -117,26 +145,37 @@ function AppContent() {
   };
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = localStorage.getItem("currentUser");
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
         setCurrentUser(userData);
         setIsAuthenticated(true);
-        
-        const savedStats = localStorage.getItem(`pronunciationData_${userData.email}`);
+
+        const savedStats = localStorage.getItem(
+          `pronunciationData_${userData.email}`
+        );
         if (savedStats) {
           setPracticeStats(JSON.parse(savedStats));
         }
 
-        const savedGameHistory = localStorage.getItem(`gameHistory_${userData.email}`);
+        const savedGameHistory = localStorage.getItem(
+          `gameHistory_${userData.email}`
+        );
         if (savedGameHistory) {
           const history = JSON.parse(savedGameHistory);
           setGameHistory(history);
-          setTotalScore(history.reduce((sum: number, game: {score: number}) => sum + game.score, 0));
+          setTotalScore(
+            history.reduce(
+              (sum: number, game: { score: number }) => sum + game.score,
+              0
+            )
+          );
         }
 
-        const savedTotalScore = localStorage.getItem(`totalScore_${userData.email}`);
+        const savedTotalScore = localStorage.getItem(
+          `totalScore_${userData.email}`
+        );
         if (savedTotalScore) {
           setTotalScore(parseInt(savedTotalScore, 10));
         }
@@ -149,7 +188,7 @@ function AppContent() {
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem(
-        `pronunciationData_${currentUser.email}`, 
+        `pronunciationData_${currentUser.email}`,
         JSON.stringify(practiceStats)
       );
       localStorage.setItem(
@@ -166,17 +205,17 @@ function AppContent() {
   const handleLogin = (email: string, username: string, token: string) => {
     setAuthToken(token);
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    
+    const today = now.toISOString().split("T")[0];
+
     let loginStreak = 1;
     let pointsToAdd = POINT_VALUES.DAILY_LOGIN;
 
-    const savedUser = localStorage.getItem('currentUser');
+    const savedUser = localStorage.getItem("currentUser");
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
-        const lastLogin = userData.lastLoginDate?.split('T')[0];
-        
+        const lastLogin = userData.lastLoginDate?.split("T")[0];
+
         if (lastLogin === today) {
           loginStreak = userData.loginStreak || 1;
           pointsToAdd = 0;
@@ -189,18 +228,18 @@ function AppContent() {
       }
     }
 
-    const userData = { 
-      email, 
-      username, 
+    const userData = {
+      email,
+      username,
       points: (savedUser ? JSON.parse(savedUser).points : 0) + pointsToAdd,
       lastLoginDate: now.toISOString(),
-      loginStreak
+      loginStreak,
     };
 
     setCurrentUser(userData);
     setIsAuthenticated(true);
-    localStorage.setItem('currentUser', JSON.stringify(userData));
-    
+    localStorage.setItem("currentUser", JSON.stringify(userData));
+
     const savedStats = localStorage.getItem(`pronunciationData_${email}`);
     if (savedStats) {
       try {
@@ -213,7 +252,7 @@ function AppContent() {
         wordsPracticed: 0,
         sessions: [],
         lastPracticeDate: null,
-        minimalPairsCompleted: 0
+        minimalPairsCompleted: 0,
       });
     }
 
@@ -222,7 +261,12 @@ function AppContent() {
       try {
         const history = JSON.parse(savedGameHistory);
         setGameHistory(history);
-        setTotalScore(history.reduce((sum: number, game: {score: number}) => sum + game.score, 0));
+        setTotalScore(
+          history.reduce(
+            (sum: number, game: { score: number }) => sum + game.score,
+            0
+          )
+        );
       } catch (error) {
         console.error("Error parsing game history:", error);
       }
@@ -253,43 +297,46 @@ function AppContent() {
         ...currentUser,
         lastLoginDate: currentUser.lastLoginDate,
         loginStreak: currentUser.loginStreak,
-        points: currentUser.points
+        points: currentUser.points,
       };
-      localStorage.setItem('currentUser', JSON.stringify(userData));
+      localStorage.setItem("currentUser", JSON.stringify(userData));
     }
 
     setIsAuthenticated(false);
     setCurrentUser(null);
-    setActiveTab('practice');
+    setActiveTab("practice");
     setAuthToken(null);
   };
 
   const handleUpdateProfile = async (newUsername: string): Promise<void> => {
     if (!currentUser) return;
-    
+
     const updatedUser = {
       ...currentUser,
-      username: newUsername
+      username: newUsername,
     };
-    
+
     setCurrentUser(updatedUser);
-    localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
   };
 
-  const handleUpdateEmail = async (newEmail: string, password: string): Promise<boolean> => {
+  const handleUpdateEmail = async (
+    newEmail: string,
+    password: string
+  ): Promise<boolean> => {
     if (!currentUser) return false;
-    
+
     try {
       console.log("Verifying password:", password);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       const updatedUser = {
         ...currentUser,
-        email: newEmail
+        email: newEmail,
       };
-      
+
       setCurrentUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
       return true;
     } catch (error) {
       console.error("Error updating email:", error);
@@ -297,26 +344,29 @@ function AppContent() {
     }
   };
 
-  const handleChangePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  const handleChangePassword = async (
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> => {
     console.log("Changing password from", currentPassword, "to", newPassword);
     return true;
   };
 
   const handleDeleteAccount = async (password: string): Promise<void> => {
     if (!currentUser) return;
-    
+
     try {
       console.log("Verifying password:", password);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      localStorage.removeItem('currentUser');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      localStorage.removeItem("currentUser");
       localStorage.removeItem(`pronunciationData_${currentUser.email}`);
       localStorage.removeItem(`gameHistory_${currentUser.email}`);
       localStorage.removeItem(`totalScore_${currentUser.email}`);
-      
+
       setIsAuthenticated(false);
       setCurrentUser(null);
-      setActiveTab('practice');
+      setActiveTab("practice");
       setAuthToken(null);
     } catch (error) {
       console.error("Failed to delete account:", error);
@@ -328,18 +378,18 @@ function AppContent() {
     if (isCorrect && currentUser) {
       const now = new Date();
       const pointsEarned = POINT_VALUES.MINIMAL_PAIR_CORRECT;
-      
-      setPracticeStats(prev => ({
+
+      setPracticeStats((prev) => ({
         ...prev,
-        minimalPairsCompleted: prev.minimalPairsCompleted + 1
+        minimalPairsCompleted: prev.minimalPairsCompleted + 1,
       }));
 
       const updatedUser = {
         ...currentUser,
-        points: currentUser.points + pointsEarned
+        points: currentUser.points + pointsEarned,
       };
       setCurrentUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
     }
   };
 
@@ -393,11 +443,11 @@ function AppContent() {
       const transcript = event.results[0][0].transcript.toLowerCase();
       const confidence = event.results[0][0].confidence;
       const accuracyScore = Math.round(confidence * 100);
-      
+
       setUserRecording(transcript);
       setScore(accuracyScore);
       setIsListening(false);
-      
+
       updatePracticeStats(accuracyScore);
     };
 
@@ -409,27 +459,27 @@ function AppContent() {
 
   const updatePracticeStats = (score: number) => {
     const now = new Date();
-    const wordCount = word.split(/\s+/).filter(w => w.length > 0).length;
-    
-    const pointsEarned = 
-      POINT_VALUES.PRACTICE_SESSION + 
-      (score * POINT_VALUES.ACCURACY_BONUS) + 
-      (wordCount * POINT_VALUES.WORD_PRACTICED);
+    const wordCount = word.split(/\s+/).filter((w) => w.length > 0).length;
 
-    setPracticeStats(prev => ({
+    const pointsEarned =
+      POINT_VALUES.PRACTICE_SESSION +
+      score * POINT_VALUES.ACCURACY_BONUS +
+      wordCount * POINT_VALUES.WORD_PRACTICED;
+
+    setPracticeStats((prev) => ({
       ...prev,
       wordsPracticed: prev.wordsPracticed + wordCount,
       sessions: [...prev.sessions, { score, date: now.toISOString() }],
-      lastPracticeDate: now.toISOString()
+      lastPracticeDate: now.toISOString(),
     }));
 
     if (currentUser) {
       const updatedUser = {
         ...currentUser,
-        points: currentUser.points + pointsEarned
+        points: currentUser.points + pointsEarned,
       };
       setCurrentUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
     }
   };
 
@@ -446,7 +496,7 @@ function AppContent() {
       console.error("Speech recognition not initialized");
       return;
     }
-    
+
     setIsListening(true);
     setScore(null);
     setUserRecording("");
@@ -476,26 +526,38 @@ function AppContent() {
     const lowerWord = word.toLowerCase();
 
     if (lowerWord.endsWith("ed")) {
-      tips.push('Words ending in "-ed" often have a "d" or "t" sound, not "ed"');
+      tips.push(
+        'Words ending in "-ed" often have a "d" or "t" sound, not "ed"'
+      );
     }
     if (lowerWord.includes("th")) {
       tips.push('For "th", place your tongue between your teeth');
     }
     if (lowerWord.includes("r")) {
-      tips.push('The "r" sound in English is different from many languages - curl your tongue back slightly');
+      tips.push(
+        'The "r" sound in English is different from many languages - curl your tongue back slightly'
+      );
     }
     if (lowerWord.includes("w")) {
       tips.push('For "w", round your lips as if saying "oo"');
     }
     if (getSyllableCount(word) > 2) {
-      tips.push("Focus on word stress - typically one syllable is emphasized more than others");
+      tips.push(
+        "Focus on word stress - typically one syllable is emphasized more than others"
+      );
     }
 
     return tips;
   };
 
   if (!isAuthenticated) {
-    return <Auth onLogin={(email, username) => handleLogin(email, username, authToken || "")} />;
+    return (
+      <Auth
+        onLogin={(email, username) =>
+          handleLogin(email, username, authToken || "")
+        }
+      />
+    );
   }
 
   return (
@@ -509,8 +571,10 @@ function AppContent() {
             </h1>
             {currentUser && (
               <p className="text-purple-700 mt-1">
-                Welcome, {currentUser.username}! 
-                <span className="ml-2 text-yellow-600 font-bold">Points: {currentUser.points}</span>
+                Welcome, {currentUser.username}!
+                <span className="ml-2 text-yellow-600 font-bold">
+                  Points: {currentUser.points}
+                </span>
               </p>
             )}
           </div>
@@ -519,53 +583,77 @@ function AppContent() {
           </p>
         </div>
         <hr className="mt-4 border-t-2 border-purple-200 opacity-50" />
-        
+
         {/* Navigation Tabs */}
         <div className="flex mt-6 border-b border-purple-200">
           <Link
             to="/practice"
-            onClick={() => setActiveTab('practice')}
-            className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'practice' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab("practice")}
+            className={`px-4 py-2 font-medium flex items-center gap-2 ${
+              activeTab === "practice"
+                ? "text-purple-600 border-b-2 border-purple-600"
+                : "text-gray-600"
+            }`}
           >
             <Home size={18} />
             Practice
           </Link>
           <Link
             to="/minimal-pairs"
-            onClick={() => setActiveTab('minimal-pairs')}
-            className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'minimal-pairs' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab("minimal-pairs")}
+            className={`px-4 py-2 font-medium flex items-center gap-2 ${
+              activeTab === "minimal-pairs"
+                ? "text-purple-600 border-b-2 border-purple-600"
+                : "text-gray-600"
+            }`}
           >
             <Volume2 size={18} />
             Minimal Pairs
           </Link>
           <Link
             to="/game"
-            onClick={() => setActiveTab('game')}
-            className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'game' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab("game")}
+            className={`px-4 py-2 font-medium flex items-center gap-2 ${
+              activeTab === "game"
+                ? "text-purple-600 border-b-2 border-purple-600"
+                : "text-gray-600"
+            }`}
           >
             <Gamepad2 size={18} />
             Game
           </Link>
           <Link
             to="/leaderboard"
-            onClick={() => setActiveTab('leaderboard')}
-            className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'leaderboard' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab("leaderboard")}
+            className={`px-4 py-2 font-medium flex items-center gap-2 ${
+              activeTab === "leaderboard"
+                ? "text-purple-600 border-b-2 border-purple-600"
+                : "text-gray-600"
+            }`}
           >
             <Trophy size={18} />
             Leaderboard
           </Link>
           <Link
             to="/profile"
-            onClick={() => setActiveTab('profile')}
-            className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'profile' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab("profile")}
+            className={`px-4 py-2 font-medium flex items-center gap-2 ${
+              activeTab === "profile"
+                ? "text-purple-600 border-b-2 border-purple-600"
+                : "text-gray-600"
+            }`}
           >
             <User size={18} />
             Profile
           </Link>
           <Link
             to="/account"
-            onClick={() => setActiveTab('account')}
-            className={`px-4 py-2 font-medium flex items-center gap-2 ${activeTab === 'account' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
+            onClick={() => setActiveTab("account")}
+            className={`px-4 py-2 font-medium flex items-center gap-2 ${
+              activeTab === "account"
+                ? "text-purple-600 border-b-2 border-purple-600"
+                : "text-gray-600"
+            }`}
           >
             <Settings size={18} />
             Account
@@ -576,173 +664,207 @@ function AppContent() {
       {/* Main Content */}
       <div className="w-full px-4 space-y-4 pb-8">
         <Routes>
-          <Route path="/practice" element={
-            <>
-              <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl shadow-sm p-6 w-full border border-purple-200">
-                <h2 className="text-xl font-semibold text-purple-800 mb-3">Practice Pronunciation</h2>
-                <p className="text-purple-700 mb-2">Type text you want to practice pronouncing:</p>
-                <textarea
-                  value={word}
-                  onChange={(e) => setWord(e.target.value)}
-                  className="w-full h-32 px-4 py-3 border border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white bg-opacity-70"
-                  placeholder="Type words or sentences to practice..."
-                />
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl shadow-sm p-6 w-full border border-purple-200">
-                <h3 className="text-lg font-medium text-purple-800 mb-1">Phonetic:</h3>
-                <p className="text-purple-700 italic">
-                  {phonetic || "Type to see phonetic transcription"}
-                </p>
-                <p className="text-sm text-purple-600 mt-1">
-                  Microsoft David - English (United States) (en-US)
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl shadow-sm p-6 w-full border border-purple-200">
-                <div className="flex gap-4">
-                  <button
-                    onClick={speak}
-                    disabled={!word}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    <Volume2 size={18} />
-                    Listen
-                  </button>
-
-                  <button
-                    onClick={startListening}
-                    disabled={!word || isListening}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    {isListening ? <Play size={18} /> : <Mic size={18} />}
-                    {isListening ? "Recording..." : "Practice"}
-                  </button>
-
-                  <button
-                    onClick={reset}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-300 to-pink-300 text-purple-800 rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all"
-                  >
-                    <RotateCcw size={18} />
-                    Reset
-                  </button>
-                </div>
-              </div>
-
-              {userRecording && (
+          <Route
+            path="/practice"
+            element={
+              <>
                 <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl shadow-sm p-6 w-full border border-purple-200">
-                  <CompareWords original={word} spoken={userRecording} />
-
-                  {score !== null && (
-                    <div className="mt-4">
-                      <h3 className="text-sm font-medium text-purple-800 mb-2">
-                        Accuracy Score: {score}%
-                      </h3>
-                      <div className="w-full bg-purple-200 rounded-full h-2">
-                        <div
-                          style={{ width: `${score}%` }}
-                          className={`h-2 rounded-full ${
-                            score >= 80
-                              ? "bg-gradient-to-r from-green-400 to-green-500"
-                              : score >= 60
-                              ? "bg-gradient-to-r from-yellow-400 to-yellow-500"
-                              : "bg-gradient-to-r from-red-400 to-red-500"
-                          }`}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {word && !word.includes(" ") && (
-                <DetailedAnalysis
-                  word={word}
-                  getPronunciationTips={getPronunciationTips}
-                  getSyllableCount={getSyllableCount}
-                  phonetic={phonetic}
-                  wordDetails={wordDetails}
-                />
-              )}
-            </>
-          } />
-          
-          <Route path="/minimal-pairs" element={
-            <div className="space-y-8">
-              <h2 className="text-2xl font-bold text-purple-800">Minimal Pairs Practice</h2>
-              <p className="text-purple-700">
-                Practice distinguishing between similar sounds in English
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {minimalPairs.map((pair, index) => (
-                  <MinimalPairPractice
-                    key={index}
-                    pair={pair}
-                    onComplete={handleMinimalPairComplete}
+                  <h2 className="text-xl font-semibold text-purple-800 mb-3">
+                    Practice Pronunciation
+                  </h2>
+                  <p className="text-purple-700 mb-2">
+                    Type text you want to practice pronouncing:
+                  </p>
+                  <textarea
+                    value={word}
+                    onChange={(e) => setWord(e.target.value)}
+                    className="w-full h-32 px-4 py-3 border border-purple-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white bg-opacity-70"
+                    placeholder="Type words or sentences to practice..."
                   />
-                ))}
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl shadow-sm p-6 w-full border border-purple-200">
+                  <h3 className="text-lg font-medium text-purple-800 mb-1">
+                    Phonetic:
+                  </h3>
+                  <p className="text-purple-700 italic">
+                    {phonetic || "Type to see phonetic transcription"}
+                  </p>
+                  <p className="text-sm text-purple-600 mt-1">
+                    Microsoft David - English (United States) (en-US)
+                  </p>
+                </div>
+
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl shadow-sm p-6 w-full border border-purple-200">
+                  <div className="flex gap-4">
+                    <button
+                      onClick={speak}
+                      disabled={!word}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <Volume2 size={18} />
+                      Listen
+                    </button>
+
+                    <button
+                      onClick={startListening}
+                      disabled={!word || isListening}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      {isListening ? <Play size={18} /> : <Mic size={18} />}
+                      {isListening ? "Recording..." : "Practice"}
+                    </button>
+
+                    <button
+                      onClick={reset}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-300 to-pink-300 text-purple-800 rounded-lg hover:from-purple-400 hover:to-pink-400 transition-all"
+                    >
+                      <RotateCcw size={18} />
+                      Reset
+                    </button>
+                  </div>
+                </div>
+
+                {userRecording && (
+                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl shadow-sm p-6 w-full border border-purple-200">
+                    <CompareWords original={word} spoken={userRecording} />
+
+                    {score !== null && (
+                      <div className="mt-4">
+                        <h3 className="text-sm font-medium text-purple-800 mb-2">
+                          Accuracy Score: {score}%
+                        </h3>
+                        <div className="w-full bg-purple-200 rounded-full h-2">
+                          <div
+                            style={{ width: `${score}%` }}
+                            className={`h-2 rounded-full ${
+                              score >= 80
+                                ? "bg-gradient-to-r from-green-400 to-green-500"
+                                : score >= 60
+                                ? "bg-gradient-to-r from-yellow-400 to-yellow-500"
+                                : "bg-gradient-to-r from-red-400 to-red-500"
+                            }`}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {word && !word.includes(" ") && (
+                  <DetailedAnalysis
+                    word={word}
+                    getPronunciationTips={getPronunciationTips}
+                    getSyllableCount={getSyllableCount}
+                    phonetic={phonetic}
+                    wordDetails={wordDetails}
+                  />
+                )}
+              </>
+            }
+          />
+
+          <Route
+            path="/minimal-pairs"
+            element={
+              <div className="space-y-8">
+                <h2 className="text-2xl font-bold text-purple-800">
+                  Minimal Pairs Practice
+                </h2>
+                <p className="text-purple-700">
+                  Practice distinguishing between similar sounds in English
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {minimalPairs.map((pair, index) => (
+                    <MinimalPairPractice
+                      key={index}
+                      pair={pair}
+                      onComplete={handleMinimalPairComplete}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          } />
-          
-          <Route path="/game" element={
-            <GameSection 
-              userName={currentUser?.username || ""}
-              onGameEnd={(finalScore) => {
-                const now = new Date().toISOString();
-                const pointsEarned = POINT_VALUES.GAME_PLAYED + (finalScore * POINT_VALUES.GAME_SCORE_MULTIPLIER);
-                
-                setGameHistory(prev => [...prev, { score: finalScore, date: now }]);
-                setTotalScore(prev => prev + finalScore);
-                
-                if (currentUser) {
-                  const updatedUser = {
-                    ...currentUser,
-                    points: currentUser.points + pointsEarned
-                  };
-                  setCurrentUser(updatedUser);
-                  localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-                  
-                  localStorage.setItem(
-                    `gameHistory_${currentUser.email}`,
-                    JSON.stringify([...gameHistory, { score: finalScore, date: now }])
-                  );
-                  localStorage.setItem(
-                    `totalScore_${currentUser.email}`,
-                    (totalScore + finalScore).toString()
-                  );
-                }
-              }}
-              gameHistory={gameHistory}
-              totalScore={totalScore}
-            />
-          } />
-          
+            }
+          />
+
+          <Route
+            path="/game"
+            element={
+              <GameSection
+                userName={currentUser?.username || ""}
+                onGameEnd={(finalScore) => {
+                  const now = new Date().toISOString();
+                  const pointsEarned =
+                    POINT_VALUES.GAME_PLAYED +
+                    finalScore * POINT_VALUES.GAME_SCORE_MULTIPLIER;
+
+                  setGameHistory((prev) => [
+                    ...prev,
+                    { score: finalScore, date: now },
+                  ]);
+                  setTotalScore((prev) => prev + finalScore);
+
+                  if (currentUser) {
+                    const updatedUser = {
+                      ...currentUser,
+                      points: currentUser.points + pointsEarned,
+                    };
+                    setCurrentUser(updatedUser);
+                    localStorage.setItem(
+                      "currentUser",
+                      JSON.stringify(updatedUser)
+                    );
+
+                    localStorage.setItem(
+                      `gameHistory_${currentUser.email}`,
+                      JSON.stringify([
+                        ...gameHistory,
+                        { score: finalScore, date: now },
+                      ])
+                    );
+                    localStorage.setItem(
+                      `totalScore_${currentUser.email}`,
+                      (totalScore + finalScore).toString()
+                    );
+                  }
+                }}
+                gameHistory={gameHistory}
+                totalScore={totalScore}
+              />
+            }
+          />
+
           <Route path="/leaderboard" element={<LeaderboardPage />} />
-          
-          <Route path="/profile" element={
-            <Profile 
-              isAuthenticated={isAuthenticated}
-              practiceStats={practiceStats}
-              currentUser={currentUser}
-              gameHistory={gameHistory}
-              totalScore={totalScore}
-              onSignOut={handleLogout}
-            />
-          } />
-          
-          <Route path="/account" element={
-            <AccountSettings
-              currentUser={currentUser}
-              onSignOut={handleLogout}
-              onUpdateProfile={handleUpdateProfile}
-              onUpdateEmail={handleUpdateEmail}
-              onChangePassword={handleChangePassword}
-              onDeleteAccount={handleDeleteAccount}
-            />
-          } />
-          
+
+          <Route
+            path="/profile"
+            element={
+              <Profile
+                isAuthenticated={isAuthenticated}
+                practiceStats={practiceStats}
+                currentUser={currentUser}
+                gameHistory={gameHistory}
+                totalScore={totalScore}
+                onSignOut={handleLogout}
+              />
+            }
+          />
+
+          <Route
+            path="/account"
+            element={
+              <AccountSettings
+                currentUser={currentUser}
+                onSignOut={handleLogout}
+                onUpdateProfile={handleUpdateProfile}
+                onUpdateEmail={handleUpdateEmail}
+                onChangePassword={handleChangePassword}
+                onDeleteAccount={handleDeleteAccount}
+              />
+            }
+          />
+
           <Route path="*" element={<Navigate to="/practice" replace />} />
         </Routes>
       </div>
